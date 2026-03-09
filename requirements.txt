@@ -1,0 +1,17 @@
+# Minimal Requirements - Demucs Wrapper Only
+# For testing stem separation before full project setup
+
+# Audio I/O (required by separation.py)
+librosa==0.10.1              # Audio loading
+soundfile==0.12.1            # WAV file I/O
+audioread==3.0.1             # Audio decoding
+
+# Core dependencies
+numpy==1.24.3                # Numerical computing
+scipy==1.11.4                # Signal processing
+
+# Utilities
+tqdm==4.66.1                 # Progress bars (librosa uses this)
+
+# Note: Demucs itself runs in Docker, so not included here
+# You only need these packages to load/save audio files in Python
