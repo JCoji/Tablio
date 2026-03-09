@@ -1,0 +1,390 @@
+--- Konfiguracja Przebiegu: run_8_Test_Higher_Dropout_and_Patient_Scheduler_augEnabled ---
+
+{
+    "static_parameters": {
+        "SAMPLE_RATE": 22050,
+        "HOP_LENGTH": 512,
+        "MAX_FRETS": 20,
+        "N_BINS_CQT": 168,
+        "BINS_PER_OCTAVE_CQT": 24,
+        "VALIDATION_SPLIT_SIZE": 0.1,
+        "TEST_SPLIT_SIZE": 0.1,
+        "RANDOM_SEED": 42
+    },
+    "default_training_parameters": {
+        "NUM_EPOCHS_DEFAULT": 300,
+        "BATCH_SIZE_DEFAULT": 2,
+        "FRET_LOSS_WEIGHT_DEFAULT": 1.0,
+        "EARLY_STOPPING_PATIENCE_DEFAULT": 25,
+        "CHECKPOINT_METRIC_DEFAULT": "val_tdr_f1"
+    },
+    "hyperparameters_tuned": {
+        "run_description": "Test_Higher_Dropout_and_Patient_Scheduler",
+        "LEARNING_RATE_INIT": 0.0003,
+        "ONSET_LOSS_WEIGHT": 9.0,
+        "ONSET_POS_WEIGHT_MANUAL_VALUE": 6.0,
+        "RNN_TYPE": "GRU",
+        "RNN_HIDDEN_SIZE": 768,
+        "RNN_LAYERS": 2,
+        "RNN_DROPOUT": 0.55,
+        "RNN_BIDIRECTIONAL": true,
+        "WEIGHT_DECAY": 0.0001,
+        "SCHEDULER_PATIENCE": 12,
+        "SCHEDULER_FACTOR": 0.2
+    },
+    "augmentations": {
+        "enable_audio_augmentations": true,
+        "aug_p_time_stretch": 0.6,
+        "aug_time_stretch_limits": [
+            0.8,
+            1.2
+        ],
+        "aug_p_add_noise": 0.7,
+        "aug_noise_level_limits": [
+            0.001,
+            0.01
+        ],
+        "aug_p_random_gain": 0.7,
+        "aug_gain_limits": [
+            0.6,
+            1.4
+        ],
+        "enable_specaugment": true,
+        "specaug_time_mask_param": 40,
+        "specaug_freq_mask_param": 26,
+        "reverb_params": {
+            "enabled": true,
+            "probability": 0.4,
+            "decay_seconds_range": [
+                0.1,
+                0.45
+            ],
+            "wet_level_range": [
+                0.1,
+                0.35
+            ]
+        },
+        "eq_params": {
+            "enabled": true,
+            "probability": 0.5,
+            "low_cutoff_hz_range": [
+                250,
+                400
+            ],
+            "high_cutoff_hz_range": [
+                3000,
+                4500
+            ]
+        },
+        "clipping_params": {
+            "enabled": true,
+            "probability": 0.3,
+            "threshold_range": [
+                0.5,
+                0.9
+            ]
+        }
+    }
+}
+
+==================================================
+
+--- Epoka 1/300 ---
+  LR: 3.00e-04 | Train Loss: 3.6997 | Val Loss: 3.1317
+  MPE F1 (ramki): 0.0868
+  TDR F1 (nuty, thr=0.5): 0.0189 (P: 0.0550, R: 0.0153)
+  Onset F1 (event, thr=0.5): 0.1030
+
+--- Epoka 2/300 ---
+  LR: 3.00e-04 | Train Loss: 3.0669 | Val Loss: 2.9044
+  MPE F1 (ramki): 0.0407
+  TDR F1 (nuty, thr=0.5): 0.0199 (P: 0.0732, R: 0.0132)
+  Onset F1 (event, thr=0.5): 0.1062
+
+--- Epoka 3/300 ---
+  LR: 3.00e-04 | Train Loss: 2.8529 | Val Loss: 2.7832
+  MPE F1 (ramki): 0.1489
+  TDR F1 (nuty, thr=0.5): 0.0545 (P: 0.1790, R: 0.0493)
+  Onset F1 (event, thr=0.5): 0.1998
+
+--- Epoka 4/300 ---
+  LR: 3.00e-04 | Train Loss: 2.6580 | Val Loss: 2.6680
+  MPE F1 (ramki): 0.2471
+  TDR F1 (nuty, thr=0.5): 0.1377 (P: 0.3228, R: 0.1229)
+  Onset F1 (event, thr=0.5): 0.4230
+
+--- Epoka 5/300 ---
+  LR: 3.00e-04 | Train Loss: 2.4971 | Val Loss: 2.2560
+  MPE F1 (ramki): 0.4517
+  TDR F1 (nuty, thr=0.5): 0.2911 (P: 0.3972, R: 0.2575)
+  Onset F1 (event, thr=0.5): 0.5466
+
+--- Epoka 6/300 ---
+  LR: 3.00e-04 | Train Loss: 2.3325 | Val Loss: 2.1220
+  MPE F1 (ramki): 0.5324
+  TDR F1 (nuty, thr=0.5): 0.3470 (P: 0.5352, R: 0.3126)
+  Onset F1 (event, thr=0.5): 0.4885
+
+--- Epoka 7/300 ---
+  LR: 3.00e-04 | Train Loss: 2.1168 | Val Loss: 2.0324
+  MPE F1 (ramki): 0.5959
+  TDR F1 (nuty, thr=0.5): 0.4155 (P: 0.5686, R: 0.3706)
+  Onset F1 (event, thr=0.5): 0.5376
+
+--- Epoka 8/300 ---
+  LR: 3.00e-04 | Train Loss: 2.0730 | Val Loss: 1.9224
+  MPE F1 (ramki): 0.6241
+  TDR F1 (nuty, thr=0.5): 0.4390 (P: 0.5612, R: 0.4115)
+  Onset F1 (event, thr=0.5): 0.5882
+
+--- Epoka 9/300 ---
+  LR: 3.00e-04 | Train Loss: 1.9819 | Val Loss: 1.9746
+  MPE F1 (ramki): 0.6611
+  TDR F1 (nuty, thr=0.5): 0.5296 (P: 0.5845, R: 0.5346)
+  Onset F1 (event, thr=0.5): 0.6749
+
+--- Epoka 10/300 ---
+  LR: 3.00e-04 | Train Loss: 1.8790 | Val Loss: 1.8880
+  MPE F1 (ramki): 0.6821
+  TDR F1 (nuty, thr=0.5): 0.5730 (P: 0.5929, R: 0.5904)
+  Onset F1 (event, thr=0.5): 0.7034
+
+--- Epoka 11/300 ---
+  LR: 3.00e-04 | Train Loss: 1.8163 | Val Loss: 1.8117
+  MPE F1 (ramki): 0.6870
+  TDR F1 (nuty, thr=0.5): 0.5958 (P: 0.6749, R: 0.5519)
+  Onset F1 (event, thr=0.5): 0.6784
+
+--- Epoka 12/300 ---
+  LR: 3.00e-04 | Train Loss: 1.7006 | Val Loss: 1.7955
+  MPE F1 (ramki): 0.7188
+  TDR F1 (nuty, thr=0.5): 0.6048 (P: 0.6548, R: 0.5781)
+  Onset F1 (event, thr=0.5): 0.6965
+
+--- Epoka 13/300 ---
+  LR: 3.00e-04 | Train Loss: 1.6340 | Val Loss: 1.6208
+  MPE F1 (ramki): 0.7307
+  TDR F1 (nuty, thr=0.5): 0.6520 (P: 0.7284, R: 0.6064)
+  Onset F1 (event, thr=0.5): 0.7028
+
+--- Epoka 14/300 ---
+  LR: 3.00e-04 | Train Loss: 1.6380 | Val Loss: 1.5780
+  MPE F1 (ramki): 0.7623
+  TDR F1 (nuty, thr=0.5): 0.7044 (P: 0.7298, R: 0.6923)
+  Onset F1 (event, thr=0.5): 0.7523
+
+--- Epoka 15/300 ---
+  LR: 3.00e-04 | Train Loss: 1.5584 | Val Loss: 1.7075
+  MPE F1 (ramki): 0.7263
+  TDR F1 (nuty, thr=0.5): 0.6978 (P: 0.7100, R: 0.6997)
+  Onset F1 (event, thr=0.5): 0.7621
+
+--- Epoka 16/300 ---
+  LR: 3.00e-04 | Train Loss: 1.5506 | Val Loss: 1.5315
+  MPE F1 (ramki): 0.7709
+  TDR F1 (nuty, thr=0.5): 0.7219 (P: 0.7241, R: 0.7290)
+  Onset F1 (event, thr=0.5): 0.7568
+
+--- Epoka 17/300 ---
+  LR: 3.00e-04 | Train Loss: 1.4441 | Val Loss: 1.5408
+  MPE F1 (ramki): 0.7883
+  TDR F1 (nuty, thr=0.5): 0.7348 (P: 0.7544, R: 0.7251)
+  Onset F1 (event, thr=0.5): 0.7679
+
+--- Epoka 18/300 ---
+  LR: 3.00e-04 | Train Loss: 1.4262 | Val Loss: 1.5291
+  MPE F1 (ramki): 0.7864
+  TDR F1 (nuty, thr=0.5): 0.7268 (P: 0.7146, R: 0.7485)
+  Onset F1 (event, thr=0.5): 0.7704
+
+--- Epoka 19/300 ---
+  LR: 3.00e-04 | Train Loss: 1.3242 | Val Loss: 1.4459
+  MPE F1 (ramki): 0.8126
+  TDR F1 (nuty, thr=0.5): 0.7687 (P: 0.7805, R: 0.7681)
+  Onset F1 (event, thr=0.5): 0.7703
+
+--- Epoka 20/300 ---
+  LR: 3.00e-04 | Train Loss: 1.3425 | Val Loss: 1.3915
+  MPE F1 (ramki): 0.8102
+  TDR F1 (nuty, thr=0.5): 0.7645 (P: 0.7800, R: 0.7591)
+  Onset F1 (event, thr=0.5): 0.7757
+
+--- Epoka 21/300 ---
+  LR: 3.00e-04 | Train Loss: 1.3198 | Val Loss: 1.4709
+  MPE F1 (ramki): 0.7768
+  TDR F1 (nuty, thr=0.5): 0.7520 (P: 0.7816, R: 0.7316)
+  Onset F1 (event, thr=0.5): 0.7714
+
+--- Epoka 22/300 ---
+  LR: 3.00e-04 | Train Loss: 1.3058 | Val Loss: 1.4016
+  MPE F1 (ramki): 0.8052
+  TDR F1 (nuty, thr=0.5): 0.7571 (P: 0.7675, R: 0.7537)
+  Onset F1 (event, thr=0.5): 0.7799
+
+--- Epoka 23/300 ---
+  LR: 3.00e-04 | Train Loss: 1.2799 | Val Loss: 1.4997
+  MPE F1 (ramki): 0.8120
+  TDR F1 (nuty, thr=0.5): 0.7648 (P: 0.8100, R: 0.7312)
+  Onset F1 (event, thr=0.5): 0.7564
+
+--- Epoka 24/300 ---
+  LR: 3.00e-04 | Train Loss: 1.2668 | Val Loss: 1.4213
+  MPE F1 (ramki): 0.8001
+  TDR F1 (nuty, thr=0.5): 0.7656 (P: 0.7971, R: 0.7428)
+  Onset F1 (event, thr=0.5): 0.7631
+
+--- Epoka 25/300 ---
+  LR: 3.00e-04 | Train Loss: 1.2076 | Val Loss: 1.3800
+  MPE F1 (ramki): 0.8246
+  TDR F1 (nuty, thr=0.5): 0.7873 (P: 0.8192, R: 0.7643)
+  Onset F1 (event, thr=0.5): 0.7701
+
+--- Epoka 26/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1614 | Val Loss: 1.3723
+  MPE F1 (ramki): 0.8140
+  TDR F1 (nuty, thr=0.5): 0.7723 (P: 0.7833, R: 0.7687)
+  Onset F1 (event, thr=0.5): 0.7885
+
+--- Epoka 27/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1684 | Val Loss: 1.4656
+  MPE F1 (ramki): 0.8016
+  TDR F1 (nuty, thr=0.5): 0.7599 (P: 0.7970, R: 0.7339)
+  Onset F1 (event, thr=0.5): 0.7694
+
+--- Epoka 28/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1441 | Val Loss: 1.3785
+  MPE F1 (ramki): 0.8157
+  TDR F1 (nuty, thr=0.5): 0.7826 (P: 0.7999, R: 0.7726)
+  Onset F1 (event, thr=0.5): 0.7751
+
+--- Epoka 29/300 ---
+  LR: 3.00e-04 | Train Loss: 1.2258 | Val Loss: 1.3751
+  MPE F1 (ramki): 0.8105
+  TDR F1 (nuty, thr=0.5): 0.7779 (P: 0.7858, R: 0.7742)
+  Onset F1 (event, thr=0.5): 0.7879
+
+--- Epoka 30/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1657 | Val Loss: 1.3453
+  MPE F1 (ramki): 0.8287
+  TDR F1 (nuty, thr=0.5): 0.7942 (P: 0.8089, R: 0.7853)
+  Onset F1 (event, thr=0.5): 0.7780
+
+--- Epoka 31/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1173 | Val Loss: 1.3727
+  MPE F1 (ramki): 0.8186
+  TDR F1 (nuty, thr=0.5): 0.7811 (P: 0.7795, R: 0.7888)
+  Onset F1 (event, thr=0.5): 0.7959
+
+--- Epoka 32/300 ---
+  LR: 3.00e-04 | Train Loss: 1.1190 | Val Loss: 1.3450
+  MPE F1 (ramki): 0.8162
+  TDR F1 (nuty, thr=0.5): 0.7840 (P: 0.8097, R: 0.7642)
+  Onset F1 (event, thr=0.5): 0.7850
+
+--- Epoka 33/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0782 | Val Loss: 1.3449
+  MPE F1 (ramki): 0.8294
+  TDR F1 (nuty, thr=0.5): 0.7930 (P: 0.8212, R: 0.7733)
+  Onset F1 (event, thr=0.5): 0.7807
+
+--- Epoka 34/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0651 | Val Loss: 1.4779
+  MPE F1 (ramki): 0.8204
+  TDR F1 (nuty, thr=0.5): 0.7805 (P: 0.8156, R: 0.7540)
+  Onset F1 (event, thr=0.5): 0.7688
+
+--- Epoka 35/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0881 | Val Loss: 1.3518
+  MPE F1 (ramki): 0.8338
+  TDR F1 (nuty, thr=0.5): 0.8060 (P: 0.8248, R: 0.7937)
+  Onset F1 (event, thr=0.5): 0.7908
+
+--- Epoka 36/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0349 | Val Loss: 1.3586
+  MPE F1 (ramki): 0.8255
+  TDR F1 (nuty, thr=0.5): 0.7983 (P: 0.8319, R: 0.7715)
+  Onset F1 (event, thr=0.5): 0.7745
+
+--- Epoka 37/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0323 | Val Loss: 1.3933
+  MPE F1 (ramki): 0.8196
+  TDR F1 (nuty, thr=0.5): 0.7970 (P: 0.8271, R: 0.7743)
+  Onset F1 (event, thr=0.5): 0.7735
+
+--- Epoka 38/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9992 | Val Loss: 1.3512
+  MPE F1 (ramki): 0.8338
+  TDR F1 (nuty, thr=0.5): 0.8033 (P: 0.8412, R: 0.7729)
+  Onset F1 (event, thr=0.5): 0.7854
+
+--- Epoka 39/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9634 | Val Loss: 1.4401
+  MPE F1 (ramki): 0.8031
+  TDR F1 (nuty, thr=0.5): 0.7776 (P: 0.8071, R: 0.7555)
+  Onset F1 (event, thr=0.5): 0.7935
+
+--- Epoka 40/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9861 | Val Loss: 1.3750
+  MPE F1 (ramki): 0.8289
+  TDR F1 (nuty, thr=0.5): 0.7923 (P: 0.7963, R: 0.7941)
+  Onset F1 (event, thr=0.5): 0.7893
+
+--- Epoka 41/300 ---
+  LR: 3.00e-04 | Train Loss: 1.0456 | Val Loss: 1.4264
+  MPE F1 (ramki): 0.8257
+  TDR F1 (nuty, thr=0.5): 0.7983 (P: 0.8295, R: 0.7773)
+  Onset F1 (event, thr=0.5): 0.7824
+
+--- Epoka 42/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9796 | Val Loss: 1.3709
+  MPE F1 (ramki): 0.8361
+  TDR F1 (nuty, thr=0.5): 0.8070 (P: 0.8426, R: 0.7796)
+  Onset F1 (event, thr=0.5): 0.7850
+
+--- Epoka 43/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9817 | Val Loss: 1.3615
+  MPE F1 (ramki): 0.8330
+  TDR F1 (nuty, thr=0.5): 0.8128 (P: 0.8421, R: 0.7895)
+  Onset F1 (event, thr=0.5): 0.7912
+
+--- Epoka 44/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9204 | Val Loss: 1.3786
+  MPE F1 (ramki): 0.8370
+  TDR F1 (nuty, thr=0.5): 0.8130 (P: 0.8555, R: 0.7796)
+  Onset F1 (event, thr=0.5): 0.7840
+
+--- Epoka 45/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9532 | Val Loss: 1.3837
+  MPE F1 (ramki): 0.8281
+  TDR F1 (nuty, thr=0.5): 0.8010 (P: 0.8226, R: 0.7862)
+  Onset F1 (event, thr=0.5): 0.7856
+
+--- Epoka 46/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9378 | Val Loss: 1.3447
+  MPE F1 (ramki): 0.8377
+  TDR F1 (nuty, thr=0.5): 0.8100 (P: 0.8426, R: 0.7862)
+  Onset F1 (event, thr=0.5): 0.7825
+
+--- Epoka 47/300 ---
+  LR: 3.00e-04 | Train Loss: 0.8929 | Val Loss: 1.4206
+  MPE F1 (ramki): 0.8356
+  TDR F1 (nuty, thr=0.5): 0.8018 (P: 0.8460, R: 0.7671)
+  Onset F1 (event, thr=0.5): 0.7764
+
+--- Epoka 48/300 ---
+  LR: 3.00e-04 | Train Loss: 0.8995 | Val Loss: 1.4281
+  MPE F1 (ramki): 0.8244
+  TDR F1 (nuty, thr=0.5): 0.7918 (P: 0.7992, R: 0.7924)
+  Onset F1 (event, thr=0.5): 0.7837
+
+--- Epoka 49/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9677 | Val Loss: 1.4534
+  MPE F1 (ramki): 0.8379
+  TDR F1 (nuty, thr=0.5): 0.8090 (P: 0.8291, R: 0.7942)
+  Onset F1 (event, thr=0.5): 0.7821
+
+--- Epoka 50/300 ---
+  LR: 3.00e-04 | Train Loss: 0.9296 | Val Loss: 1.4335
+  MPE F1 (ramki): 0.8337
+  TDR F1 (nuty, thr=0.5): 0.8001 (P: 0.8354, R: 0.7727)
+  Onset F1 (event, thr=0.5): 0.7794
