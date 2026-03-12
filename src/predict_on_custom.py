@@ -1,8 +1,14 @@
 import os
+import sys
 import torch
 import numpy as np
 import librosa
 import pretty_midi
+
+# Ensure project root is on the path so model/, training/, evaluation/ are importable
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 import config
 from model.architecture import GuitarTabCRNN
@@ -76,7 +82,7 @@ def _select_run(artifacts_dir):
             print("Please enter a number.")
 
 
-def run_custom_prediction(artifacts_dir, audio_dir, device):
+def run_custom_prediction(artifacts_dir, audio_dir, device, output_dir=None):
     selected_run = _select_run(artifacts_dir)
     if selected_run is None:
         print("Cancelled.")
@@ -102,7 +108,7 @@ def run_custom_prediction(artifacts_dir, audio_dir, device):
         print(f"No audio files found in '{audio_dir}'")
         return
 
-    output_dir = os.path.join(audio_dir, "predictions")
+    output_dir = output_dir or os.path.join(audio_dir, "predictions")
     os.makedirs(output_dir, exist_ok=True)
     print(f"\nFound {len(audio_files)} audio file(s). Saving outputs to: {output_dir}\n")
 
@@ -133,3 +139,12 @@ def run_custom_prediction(artifacts_dir, audio_dir, device):
             print(f"  Error: {e}")
 
     print("\nDone.")
+
+
+if __name__ == "__main__":
+    _artifacts_dir = os.path.join(PROJECT_ROOT, "hyperparam_set_v1")
+    _audio_dir = os.path.join(PROJECT_ROOT, "data")
+    _output_dir = os.path.join(PROJECT_ROOT, "output")
+    _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {_device}")
+    run_custom_prediction(_artifacts_dir, _audio_dir, _device, output_dir=_output_dir)
