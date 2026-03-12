@@ -82,7 +82,12 @@ def _select_run(artifacts_dir):
             print("Please enter a number.")
 
 
-def run_custom_prediction(artifacts_dir, audio_dir, device, output_dir=None):
+def run_custom_prediction(audio_path, artifacts_dir, device, output_dir=None):
+    audio_path = os.path.abspath(audio_path)
+    if not os.path.exists(audio_path):
+        print(f"Audio file not found: {audio_path}")
+        return
+
     selected_run = _select_run(artifacts_dir)
     if selected_run is None:
         print("Cancelled.")
@@ -99,52 +104,46 @@ def run_custom_prediction(artifacts_dir, audio_dir, device, output_dir=None):
         print("Failed to load model.")
         return
 
-    supported_exts = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
-    audio_files = [
-        f for f in sorted(os.listdir(audio_dir))
-        if os.path.splitext(f)[1].lower() in supported_exts
-    ]
-    if not audio_files:
-        print(f"No audio files found in '{audio_dir}'")
-        return
-
-    output_dir = output_dir or os.path.join(audio_dir, "predictions")
+    track_id = os.path.splitext(os.path.basename(audio_path))[0]
+    output_dir = output_dir or os.path.join(PROJECT_ROOT, "output")
     os.makedirs(output_dir, exist_ok=True)
-    print(f"\nFound {len(audio_files)} audio file(s). Saving outputs to: {output_dir}\n")
+    print(f"\nProcessing: {os.path.basename(audio_path)}")
+    print(f"Output -> {output_dir}\n")
 
-    for filename in audio_files:
-        track_id = os.path.splitext(filename)[0]
-        print(f"Processing: {filename}")
-        try:
-            features = _compute_cqt_features(os.path.join(audio_dir, filename), device)
-            onset_probs, fret_indices = _run_inference(model, features)
+    try:
+        features = _compute_cqt_features(audio_path, device)
+        onset_probs, fret_indices = _run_inference(model, features)
 
-            onset_binary = (onset_probs > config.DEFAULT_TDR_THRESHOLD).float()
-            notes = frames_to_notes_for_eval(
-                onset_preds_binary_frames=onset_binary.cpu(),
-                fret_pred_indices_frames=fret_indices.cpu(),
-                frame_hop_length=config.HOP_LENGTH,
-                audio_sample_rate=config.SAMPLE_RATE,
-            )
+        onset_binary = (onset_probs > config.DEFAULT_TDR_THRESHOLD).float()
+        notes = frames_to_notes_for_eval(
+            onset_preds_binary_frames=onset_binary.cpu(),
+            fret_pred_indices_frames=fret_indices.cpu(),
+            frame_hop_length=config.HOP_LENGTH,
+            audio_sample_rate=config.SAMPLE_RATE,
+        )
 
-            tab_path = os.path.join(output_dir, f"{track_id}_tab.txt")
-            save_notes_to_ascii_tab(notes, tab_path, track_id, config)
-            print(f"  Tablature -> {tab_path}")
+        tab_path = os.path.join(output_dir, f"{track_id}_tab.txt")
+        save_notes_to_ascii_tab(notes, tab_path, track_id, config)
+        print(f"  Tablature -> {tab_path}")
 
-            midi_path = os.path.join(output_dir, f"{track_id}.mid")
-            _save_midi(notes, midi_path, track_id)
-            print(f"  MIDI      -> {midi_path}")
+        midi_path = os.path.join(output_dir, f"{track_id}.mid")
+        _save_midi(notes, midi_path, track_id)
+        print(f"  MIDI      -> {midi_path}")
 
-        except Exception as e:
-            print(f"  Error: {e}")
+    except Exception as e:
+        print(f"  Error: {e}")
 
     print("\nDone.")
 
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("audio_file", help="Path to input audio file (e.g. data/Yume_Utsutsu.wav)")
+    args = parser.parse_args()
+
     _artifacts_dir = os.path.join(PROJECT_ROOT, "hyperparam_set_v1")
-    _audio_dir = os.path.join(PROJECT_ROOT, "data")
     _output_dir = os.path.join(PROJECT_ROOT, "output")
     _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {_device}")
-    run_custom_prediction(_artifacts_dir, _audio_dir, _device, output_dir=_output_dir)
+    run_custom_prediction(args.audio_file, _artifacts_dir, _device, output_dir=_output_dir)

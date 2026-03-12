@@ -50,7 +50,7 @@ class StemSeparator:
         return self._model
 
     def _get_cached_stem_path(self, audio_path, stem):
-        return self.cache_dir / audio_path.stem / f"{stem}.wav"
+        return self.cache_dir / f"{audio_path.stem}.wav"
 
     def separate(self, audio_path, force=False, target_stem='guitar'):
         """
@@ -93,24 +93,43 @@ class StemSeparator:
         with torch.no_grad():
             sources = apply_model(model, wav[None].to(self.device), device=self.device)[0]
 
-        stem_dir = self.cache_dir / audio_path.stem
-        stem_dir.mkdir(parents=True, exist_ok=True)
+        target_idx = model.sources.index(target_stem)
+        ta.save(str(stem_path), sources[target_idx].cpu(), model.samplerate)
 
-        for i, name in enumerate(model.sources):
-            ta.save(str(stem_dir / f"{name}.wav"), sources[i].cpu(), model.samplerate)
-
-        logger.info(f"Stems saved to: {stem_dir}")
+        logger.info(f"Stem saved to: {stem_path}")
         return stem_path
 
     def get_all_stems(self, audio_path, force=False):
         """
-        Get paths to all separated stems
+        Separate all stems and return their paths.
 
         Returns:
             dict: Mapping of stem names to file paths
         """
-        self.separate(audio_path, force=force)
-        stem_dir = self.cache_dir / Path(audio_path).stem
+        audio_path = Path(audio_path).resolve()
+        model = self._load_model()
+
+        stem_dir = self.cache_dir / audio_path.stem
+        if not force and stem_dir.exists():
+            return {f.stem: f for f in stem_dir.glob('*.wav')}
+
+        wav, sr = ta.load(str(audio_path))
+        if sr != model.samplerate:
+            wav = ta.functional.resample(wav, sr, model.samplerate)
+        if wav.shape[0] != model.audio_channels:
+            wav = wav.repeat(2, 1) if model.audio_channels == 2 else wav[:model.audio_channels]
+
+        ref = wav.mean(0)
+        wav = (wav - ref.mean()) / ref.std()
+
+        with torch.no_grad():
+            sources = apply_model(model, wav[None].to(self.device), device=self.device)[0]
+
+        stem_dir.mkdir(parents=True, exist_ok=True)
+        for i, name in enumerate(model.sources):
+            ta.save(str(stem_dir / f"{name}.wav"), sources[i].cpu(), model.samplerate)
+
+        logger.info(f"All stems saved to: {stem_dir}")
         return {f.stem: f for f in stem_dir.glob('*.wav')}
 
     def clear_cache(self, song_name=None):
