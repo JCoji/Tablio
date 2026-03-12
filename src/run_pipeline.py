@@ -13,13 +13,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from nodes import stem_extraction, create_dataset, predict
+from nodes import stem_extraction, create_dataset, load_model, predict
 
 
 @dataclass
 class PipelineState:
     input_path: Path
     guitar_stem_path: Optional[Path] = None
+    predicted_notes: Optional[list] = None
+    model: Optional[object] = None
     mixed_dataset_dir: Path = Path("data/guitarset_mixed")
     output_dir: Path = Path("output")
     artifacts_dir: Path = Path("hyperparam_set_v1")
@@ -50,18 +52,20 @@ if __name__ == "__main__":
     parser.add_argument("--artifacts", default="hyperparam_set_v1", help="Path to model artifacts dir")
     parser.add_argument("--output", default="output", help="Output directory")
     parser.add_argument("--device", default="cpu", help="Device for inference (cpu, cuda, mps)")
+    parser.add_argument("--run", default="run_7_Test_Higher_OnsetLossWeight_10_augEnabled", help="Model run folder name (skips interactive prompt)")
     args = parser.parse_args()
 
     state = PipelineState(
         input_path=Path(args.input),
         output_dir=Path(args.output),
         artifacts_dir=Path(args.artifacts),
-        extras={"musdb_dir": args.musdb, "device": args.device},
+        extras={"musdb_dir": args.musdb, "device": args.device, "run_name": args.run},
     )
 
     nodes = [
         Node("stem_extraction", stem_extraction),
         Node("create_dataset",  create_dataset,  enabled=False),
+        Node("load_model",      load_model),
         Node("predict",         predict),
     ]
 

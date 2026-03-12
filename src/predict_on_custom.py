@@ -82,13 +82,29 @@ def _select_run(artifacts_dir):
             print("Please enter a number.")
 
 
-def run_custom_prediction(audio_path, artifacts_dir, device, output_dir=None):
+def predict_notes(audio_path, model, device):
+    """Run inference and return a list of predicted note dicts. No file I/O."""
+    features = _compute_cqt_features(str(audio_path), device)
+    onset_probs, fret_indices = _run_inference(model, features)
+    onset_binary = (onset_probs > config.DEFAULT_TDR_THRESHOLD).float()
+    return frames_to_notes_for_eval(
+        onset_preds_binary_frames=onset_binary.cpu(),
+        fret_pred_indices_frames=fret_indices.cpu(),
+        frame_hop_length=config.HOP_LENGTH,
+        audio_sample_rate=config.SAMPLE_RATE,
+    )
+
+
+def run_custom_prediction(audio_path, artifacts_dir, device, output_dir=None, run_name=None):
     audio_path = os.path.abspath(audio_path)
     if not os.path.exists(audio_path):
         print(f"Audio file not found: {audio_path}")
         return
 
-    selected_run = _select_run(artifacts_dir)
+    if run_name is not None:
+        selected_run = run_name
+    else:
+        selected_run = _select_run(artifacts_dir)
     if selected_run is None:
         print("Cancelled.")
         return
