@@ -20,3 +20,4 @@ mir_eval                     # Note transcription evaluation metrics
 tqdm==4.66.1                 # Progress bars
 
 mirdata                # Dataset handling and JAMS support
+jams
