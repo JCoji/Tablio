@@ -50,7 +50,8 @@ def load_best_model(model_class, model_path, run_config_path, device):
 
         loaded_model = model_class(**model_init_params)
 
-        print(f"Ładowanie wag na urządzenie: {device.type}")
+        device_type = device.type if hasattr(device, "type") else device
+        print(f"Ładowanie wag na urządzenie: {device_type}")
         state_dict = torch.load(model_path, map_location=device, weights_only=True)
 
         if list(state_dict.keys())[0].startswith("module."):
