@@ -9,6 +9,8 @@ scipy==1.11.4                # Signal processing
 
 # Deep learning
 torch                        # Model inference (install CPU or CUDA build as appropriate)
+torchaudio                   # Audio loading and resampling
+demucs                       # Stem separation (htdemucs_6s for isolated guitar stem)
 
 # MIDI / evaluation
 pretty_midi                  # MIDI export
@@ -17,4 +19,4 @@ mir_eval                     # Note transcription evaluation metrics
 # Utilities
 tqdm==4.66.1                 # Progress bars
 
-# Note: Demucs itself runs in Docker, so not included here
+mirdata                # Dataset handling and JAMS support

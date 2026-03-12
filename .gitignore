@@ -7,7 +7,16 @@ env/
 # Python
 __pycache__/
 *.py[cod]
+
+# Model weights
 *.pth
 
 # OS
 .DS_Store
+
+#Audio
+*.wav
+*.mp3
+data/
+input/
+output/
