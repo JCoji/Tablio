@@ -140,16 +140,22 @@ def choose_musdb_pool(tracks_by_split, split_name):
 def create_mixed_guitarset(
     output_dir='data/guitarset_mixed',
     musdb_dir='musdb18hq',
-    train_split=0.8
+    train_split=0.8,
+    augment=True,
+    seed=42,
 ):
     """
     Mix GuitarSet tracks with MUSDB18 background instrumentation
-    
+
     Args:
-        output_dir: Where to save mixed audio + JAMS
-        musdb_dir: Path to MUSDB18-HQ dataset
+        output_dir:  Where to save mixed audio + JAMS
+        musdb_dir:   Path to MUSDB18-HQ dataset
         train_split: Fraction for training (rest is validation)
+        augment:     Apply reverb, compression, and unbalanced levels (default True)
+        seed:        Random seed for reproducible mixes (default 42)
     """
+    random.seed(seed)
+    np.random.seed(seed)
     
     # Initialize datasets
     print("Loading GuitarSet...")
@@ -188,11 +194,11 @@ def create_mixed_guitarset(
     
     # Process training set
     print("\n📦 Processing training set...")
-    process_split(guitarset, train_ids, choose_musdb_pool(tracks_by_split, 'train'), train_dir)
-    
+    process_split(guitarset, train_ids, choose_musdb_pool(tracks_by_split, 'train'), train_dir, augment=augment)
+
     # Process validation set
     print("\n📦 Processing validation set...")
-    process_split(guitarset, val_ids, choose_musdb_pool(tracks_by_split, 'val'), val_dir)
+    process_split(guitarset, val_ids, choose_musdb_pool(tracks_by_split, 'val'), val_dir, augment=augment)
     
     print(f"\n✅ Dataset creation complete!")
     print(f"   Location: {output_dir}")
@@ -204,7 +210,7 @@ def create_mixed_guitarset(
     print(f"   Total size: {total_size_gb:.1f} GB")
 
 
-def process_split(guitarset, track_ids, musdb_tracks, output_dir):
+def process_split(guitarset, track_ids, musdb_tracks, output_dir, augment=True):
     """Process one split (train or val)"""
     
     for i, track_id in enumerate(tqdm(track_ids, desc="Mixing tracks")):
@@ -240,46 +246,54 @@ def process_split(guitarset, track_ids, musdb_tracks, output_dir):
             bass   = bass  [:min_len, 0] if bass  .ndim > 1 else bass  [:min_len]
             vocals = vocals[:min_len, 0] if vocals.ndim > 1 else vocals[:min_len]
 
-            # 4. Draw per-track augmentation params (all explicit so every mix is unique)
-            # Room acoustics — independent room per stem; None = skip reverb entirely
-            guitar_reverb = (random.uniform(0.05, 1.0), random.uniform(0.05, 0.6)) if random.random() < 0.7 else None
-            drums_reverb  = (random.uniform(0.05, 0.6), random.uniform(0.05, 0.4)) if random.random() < 0.5 else None
-            bass_reverb   = (random.uniform(0.05, 0.5), random.uniform(0.03, 0.3)) if random.random() < 0.4 else None
-            vocals_reverb = (random.uniform(0.1,  0.8), random.uniform(0.1,  0.5)) if random.random() < 0.5 else None
+            # 4. Volume levels
+            if augment:
+                # Unbalanced — wide, asymmetric ranges
+                guitar_vol = random.uniform(0.3, 1.3)
+                drum_vol   = random.uniform(0.05, 1.1)
+                bass_vol   = random.uniform(0.05, 1.1)
+                vocal_vol  = random.uniform(0.02, 0.9)
+            else:
+                guitar_vol = 1.0
+                drum_vol   = 0.7
+                bass_vol   = 0.7
+                vocal_vol  = 0.6
 
-            # Compression — (threshold_db, ratio) or None = skip
-            guitar_comp = (random.uniform(-30, -6),  random.uniform(1.5, 10.0)) if random.random() < 0.6 else None
-            drums_comp  = (random.uniform(-24, -6),  random.uniform(2.0, 8.0))  if random.random() < 0.5 else None
-            bass_comp   = (random.uniform(-24, -8),  random.uniform(2.0, 6.0))  if random.random() < 0.5 else None
-            vocals_comp = (random.uniform(-20, -6),  random.uniform(1.5, 5.0))  if random.random() < 0.4 else None
+            if augment:
+                # Draw per-track augmentation params (all explicit so every mix is unique)
+                # Room acoustics — independent room per stem; None = skip reverb entirely
+                guitar_reverb = (random.uniform(0.05, 1.0), random.uniform(0.05, 0.6)) if random.random() < 0.7 else None
+                drums_reverb  = (random.uniform(0.05, 0.6), random.uniform(0.05, 0.4)) if random.random() < 0.5 else None
+                bass_reverb   = (random.uniform(0.05, 0.5), random.uniform(0.03, 0.3)) if random.random() < 0.4 else None
+                vocals_reverb = (random.uniform(0.1,  0.8), random.uniform(0.1,  0.5)) if random.random() < 0.5 else None
 
-            # Volume levels — fully independent, wide ranges
-            guitar_vol = random.uniform(0.3, 1.3)
-            drum_vol   = random.uniform(0.05, 1.1)
-            bass_vol   = random.uniform(0.05, 1.1)
-            vocal_vol  = random.uniform(0.02, 0.9)
+                # Compression — (threshold_db, ratio) or None = skip
+                guitar_comp = (random.uniform(-30, -6),  random.uniform(1.5, 10.0)) if random.random() < 0.6 else None
+                drums_comp  = (random.uniform(-24, -6),  random.uniform(2.0, 8.0))  if random.random() < 0.5 else None
+                bass_comp   = (random.uniform(-24, -8),  random.uniform(2.0, 6.0))  if random.random() < 0.5 else None
+                vocals_comp = (random.uniform(-20, -6),  random.uniform(1.5, 5.0))  if random.random() < 0.4 else None
 
-            # 5. Apply per-stem room acoustics
-            if guitar_reverb:
-                guitar_audio = apply_reverb(guitar_audio, sr, room_size=guitar_reverb[0], wet_dry=guitar_reverb[1])
-            if drums_reverb:
-                drums  = apply_reverb(drums,  sr, room_size=drums_reverb[0],  wet_dry=drums_reverb[1])
-            if bass_reverb:
-                bass   = apply_reverb(bass,   sr, room_size=bass_reverb[0],   wet_dry=bass_reverb[1])
-            if vocals_reverb:
-                vocals = apply_reverb(vocals, sr, room_size=vocals_reverb[0], wet_dry=vocals_reverb[1])
+                # Apply per-stem room acoustics
+                if guitar_reverb:
+                    guitar_audio = apply_reverb(guitar_audio, sr, room_size=guitar_reverb[0], wet_dry=guitar_reverb[1])
+                if drums_reverb:
+                    drums  = apply_reverb(drums,  sr, room_size=drums_reverb[0],  wet_dry=drums_reverb[1])
+                if bass_reverb:
+                    bass   = apply_reverb(bass,   sr, room_size=bass_reverb[0],   wet_dry=bass_reverb[1])
+                if vocals_reverb:
+                    vocals = apply_reverb(vocals, sr, room_size=vocals_reverb[0], wet_dry=vocals_reverb[1])
 
-            # 6. Apply per-stem dynamic range compression
-            if guitar_comp:
-                guitar_audio = apply_compression(guitar_audio, threshold_db=guitar_comp[0], ratio=guitar_comp[1])
-            if drums_comp:
-                drums  = apply_compression(drums,  threshold_db=drums_comp[0],  ratio=drums_comp[1])
-            if bass_comp:
-                bass   = apply_compression(bass,   threshold_db=bass_comp[0],   ratio=bass_comp[1])
-            if vocals_comp:
-                vocals = apply_compression(vocals, threshold_db=vocals_comp[0], ratio=vocals_comp[1])
+                # Apply per-stem dynamic range compression
+                if guitar_comp:
+                    guitar_audio = apply_compression(guitar_audio, threshold_db=guitar_comp[0], ratio=guitar_comp[1])
+                if drums_comp:
+                    drums  = apply_compression(drums,  threshold_db=drums_comp[0],  ratio=drums_comp[1])
+                if bass_comp:
+                    bass   = apply_compression(bass,   threshold_db=bass_comp[0],   ratio=bass_comp[1])
+                if vocals_comp:
+                    vocals = apply_compression(vocals, threshold_db=vocals_comp[0], ratio=vocals_comp[1])
 
-            # 7. Unbalanced mix
+            # 5. Mix
             full_mix = (
                 guitar_audio * guitar_vol +
                 drums  * drum_vol +
@@ -287,8 +301,8 @@ def process_split(guitarset, track_ids, musdb_tracks, output_dir):
                 vocals * vocal_vol
             )
 
-            # 8. Optional mix-bus compression (light glue; ~40% of tracks)
-            if random.random() < 0.4:
+            # 6. Optional mix-bus compression (augment only; ~40% of tracks)
+            if augment and random.random() < 0.4:
                 full_mix = apply_compression(
                     full_mix,
                     threshold_db=random.uniform(-18, -4),
@@ -323,11 +337,17 @@ if __name__ == '__main__':
                         help='Path to MUSDB18-HQ dataset')
     parser.add_argument('--split', type=float, default=0.8,
                         help='Train/val split (default: 0.8)')
-    
+    parser.add_argument('--augment', action=argparse.BooleanOptionalAction, default=True,
+                        help='Apply reverb/compression/unbalanced levels (default: on). Use --no-augment to disable.')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='Random seed for reproducible mixes (default: 42)')
+
     args = parser.parse_args()
-    
+
     create_mixed_guitarset(
         output_dir=args.output,
         musdb_dir=args.musdb,
-        train_split=args.split
+        train_split=args.split,
+        augment=args.augment,
+        seed=args.seed,
     )
