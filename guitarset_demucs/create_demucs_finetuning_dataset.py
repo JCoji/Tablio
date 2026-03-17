@@ -1,6 +1,11 @@
 """
 Create mixed GuitarSet dataset for fine-tuning and evaluation
 Saves: Mixed audio + Original JAMS (no pre-separated stems)
+
+Augmentations applied during mixing:
+  - Unbalanced instrument levels (wide random volume ranges per stem)
+  - Dynamic range compression (soft-knee, per-stem or mix)
+  - Room acoustics (convolution reverb with synthetic RIR, per-stem)
 """
 
 import mirdata
@@ -10,9 +15,74 @@ from pathlib import Path
 from tqdm import tqdm
 import random
 import jams
+from scipy.signal import fftconvolve
 
 
 REQUIRED_STEMS = ("drums.wav", "bass.wav", "vocals.wav")
+
+
+# ---------------------------------------------------------------------------
+# Augmentation helpers
+# ---------------------------------------------------------------------------
+
+def apply_compression(audio, threshold_db=None, ratio=None):
+    """
+    Vectorised soft-knee dynamic range compressor.
+
+    Args:
+        audio:        1-D float array
+        threshold_db: compression threshold in dBFS (default: random -24 … -6)
+        ratio:        compression ratio (default: random 2 … 8)
+    """
+    if threshold_db is None:
+        threshold_db = random.uniform(-24.0, -6.0)
+    if ratio is None:
+        ratio = random.uniform(2.0, 8.0)
+
+    threshold = 10 ** (threshold_db / 20.0)
+    abs_audio = np.abs(audio)
+    # Gain = 1 below threshold; compressed above
+    gain = np.where(
+        abs_audio > threshold,
+        (threshold + (abs_audio - threshold) / ratio) / np.maximum(abs_audio, 1e-10),
+        1.0,
+    )
+    return audio * gain
+
+
+def _make_room_ir(sr, decay_time):
+    """
+    Synthesise a plausible room impulse response as exponentially-decaying
+    white noise with a unit direct-sound spike at sample 0.
+    """
+    ir_len = int(decay_time * sr)
+    t = np.arange(ir_len) / sr
+    ir = np.random.randn(ir_len) * np.exp(-t / (decay_time / 6.0))
+    ir[0] = 1.0  # direct sound
+    ir /= np.max(np.abs(ir)) + 1e-10
+    return ir
+
+
+def apply_reverb(audio, sr, room_size=None, wet_dry=None):
+    """
+    Convolve `audio` with a synthetic room impulse response.
+
+    Args:
+        audio:     1-D float array
+        sr:        sample rate
+        room_size: 0–1 controlling decay length (default: random 0.1 … 0.9)
+        wet_dry:   wet/dry blend 0–1 (default: random 0.1 … 0.5)
+    """
+    if room_size is None:
+        room_size = random.uniform(0.1, 0.9)
+    if wet_dry is None:
+        wet_dry = random.uniform(0.1, 0.5)
+
+    decay_time = 0.05 + room_size * 1.5   # 0.05 s … 1.55 s
+    ir = _make_room_ir(sr, decay_time)
+    wet = fftconvolve(audio, ir)[: len(audio)]
+    wet /= np.max(np.abs(wet)) + 1e-10
+    return audio * (1.0 - wet_dry) + wet * wet_dry
 
 
 def discover_musdb_tracks(musdb_dir):
@@ -164,25 +234,68 @@ def process_split(guitarset, track_ids, musdb_tracks, output_dir):
             # 3. Match lengths (use shortest)
             min_len = min(len(guitar_audio), len(drums), len(bass), len(vocals))
             guitar_audio = guitar_audio[:min_len]
-            
+
             # Convert stereo to mono if needed
-            drums = drums[:min_len, 0] if len(drums.shape) > 1 else drums[:min_len]
-            bass = bass[:min_len, 0] if len(bass.shape) > 1 else bass[:min_len]
-            vocals = vocals[:min_len, 0] if len(vocals.shape) > 1 else vocals[:min_len]
-            
-            # 4. Mix with random volume variations (for diversity)
-            drum_vol = random.uniform(0.5, 0.8)
-            bass_vol = random.uniform(0.5, 0.8)
-            vocal_vol = random.uniform(0.4, 0.7)
-            
+            drums  = drums [:min_len, 0] if drums .ndim > 1 else drums [:min_len]
+            bass   = bass  [:min_len, 0] if bass  .ndim > 1 else bass  [:min_len]
+            vocals = vocals[:min_len, 0] if vocals.ndim > 1 else vocals[:min_len]
+
+            # 4. Draw per-track augmentation params (all explicit so every mix is unique)
+            # Room acoustics — independent room per stem; None = skip reverb entirely
+            guitar_reverb = (random.uniform(0.05, 1.0), random.uniform(0.05, 0.6)) if random.random() < 0.7 else None
+            drums_reverb  = (random.uniform(0.05, 0.6), random.uniform(0.05, 0.4)) if random.random() < 0.5 else None
+            bass_reverb   = (random.uniform(0.05, 0.5), random.uniform(0.03, 0.3)) if random.random() < 0.4 else None
+            vocals_reverb = (random.uniform(0.1,  0.8), random.uniform(0.1,  0.5)) if random.random() < 0.5 else None
+
+            # Compression — (threshold_db, ratio) or None = skip
+            guitar_comp = (random.uniform(-30, -6),  random.uniform(1.5, 10.0)) if random.random() < 0.6 else None
+            drums_comp  = (random.uniform(-24, -6),  random.uniform(2.0, 8.0))  if random.random() < 0.5 else None
+            bass_comp   = (random.uniform(-24, -8),  random.uniform(2.0, 6.0))  if random.random() < 0.5 else None
+            vocals_comp = (random.uniform(-20, -6),  random.uniform(1.5, 5.0))  if random.random() < 0.4 else None
+
+            # Volume levels — fully independent, wide ranges
+            guitar_vol = random.uniform(0.3, 1.3)
+            drum_vol   = random.uniform(0.05, 1.1)
+            bass_vol   = random.uniform(0.05, 1.1)
+            vocal_vol  = random.uniform(0.02, 0.9)
+
+            # 5. Apply per-stem room acoustics
+            if guitar_reverb:
+                guitar_audio = apply_reverb(guitar_audio, sr, room_size=guitar_reverb[0], wet_dry=guitar_reverb[1])
+            if drums_reverb:
+                drums  = apply_reverb(drums,  sr, room_size=drums_reverb[0],  wet_dry=drums_reverb[1])
+            if bass_reverb:
+                bass   = apply_reverb(bass,   sr, room_size=bass_reverb[0],   wet_dry=bass_reverb[1])
+            if vocals_reverb:
+                vocals = apply_reverb(vocals, sr, room_size=vocals_reverb[0], wet_dry=vocals_reverb[1])
+
+            # 6. Apply per-stem dynamic range compression
+            if guitar_comp:
+                guitar_audio = apply_compression(guitar_audio, threshold_db=guitar_comp[0], ratio=guitar_comp[1])
+            if drums_comp:
+                drums  = apply_compression(drums,  threshold_db=drums_comp[0],  ratio=drums_comp[1])
+            if bass_comp:
+                bass   = apply_compression(bass,   threshold_db=bass_comp[0],   ratio=bass_comp[1])
+            if vocals_comp:
+                vocals = apply_compression(vocals, threshold_db=vocals_comp[0], ratio=vocals_comp[1])
+
+            # 7. Unbalanced mix
             full_mix = (
-                guitar_audio * 1.0 +      # Guitar always at full volume
-                drums * drum_vol +
-                bass * bass_vol +
+                guitar_audio * guitar_vol +
+                drums  * drum_vol +
+                bass   * bass_vol +
                 vocals * vocal_vol
             )
-            
-            # 5. Normalize to prevent clipping
+
+            # 8. Optional mix-bus compression (light glue; ~40% of tracks)
+            if random.random() < 0.4:
+                full_mix = apply_compression(
+                    full_mix,
+                    threshold_db=random.uniform(-18, -4),
+                    ratio=random.uniform(1.2, 3.0),
+                )
+
+            # 8. Normalize to prevent clipping
             max_val = np.max(np.abs(full_mix))
             if max_val > 0:
                 full_mix = full_mix / max_val * 0.9
