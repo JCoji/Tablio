@@ -1,32 +1,31 @@
 # Audio I/O
-librosa==0.10.1              # Audio loading and CQT feature extraction
-soundfile==0.12.1            # WAV file I/O
-audioread==3.0.1             # Audio decoding
+librosa>=0.10.1              # Audio loading and CQT feature extraction
+soundfile>=0.12.1            # WAV file I/O
 
 # Core dependencies
-numpy==1.24.3                # Numerical computing
-scipy==1.11.4                # Signal processing
+numpy>=1.26.4,<2.0           # 1.24.x doesn't build on Python 3.12; <2.0 for numba compat
+scipy>=1.11.4                # Signal processing
 
 # Deep learning
-torch                        # Model inference (install CPU or CUDA build as appropriate)
-torchaudio                   # Audio loading and resampling
-demucs                       # Stem separation (htdemucs_6s for isolated guitar stem)
+torch>=2.0.0                 # Model inference (install CPU or CUDA build as appropriate)
+torchaudio>=2.0.0,<2.8.0    # >=2.8 requires torchcodec+FFmpeg system libs; cap avoids that
+demucs>=4.0.0                # Stem separation (htdemucs_6s for isolated guitar stem)
 
 # MIDI / evaluation
-pretty_midi                  # MIDI export
-mir_eval                     # Note transcription evaluation metrics
+pretty_midi>=0.2.9           # MIDI export
+mir_eval>=0.7.0              # Note transcription evaluation metrics
 
 # Data / visualisation
-pandas                       # Tabular results and summary stats
-matplotlib                   # Plotting evaluation metrics
+pandas>=2.0.0                # Tabular results and summary stats
+matplotlib>=3.7.0            # Plotting evaluation metrics
 
 # Dataset handling and annotation
-mirdata                      # GuitarSet dataset loader
-jams                         # JAMS annotation format (guitar tablature ground truth)
+mirdata>=1.0.0               # GuitarSet dataset loader
+jams>=0.3.4                  # JAMS annotation format (guitar tablature ground truth)
 
 # Utilities
-tqdm==4.66.1                 # Progress bars
+tqdm>=4.66.0                 # Progress bars
 
 # Notebooks
-notebook                     # Jupyter notebook server
-ipywidgets                   # tqdm.notebook progress bars in Jupyter
+jupyterlab>=4.0.0            # Jupyter notebook server
+ipywidgets>=8.0.0            # tqdm.notebook progress bars in Jupyter
