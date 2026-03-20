@@ -13,7 +13,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from nodes import stem_extraction, create_dataset, load_model, predict
+from nodes import stem_extraction, guitar_stem_cleaning, create_dataset, load_model, predict
+from predict_on_custom import _save_midi
+from evaluation.tablature_export import save_notes_to_ascii_tab
+import config
 
 
 @dataclass
@@ -53,7 +56,17 @@ if __name__ == "__main__":
     parser.add_argument("--output", default="output", help="Output directory")
     parser.add_argument("--device", default="cpu", help="Device for inference (cpu, cuda, mps)")
     parser.add_argument("--run", default="run_7_Test_Higher_OnsetLossWeight_10_augEnabled", help="Model run folder name (skips interactive prompt)")
+    parser.add_argument("--no-cleaning", action="store_true", help="Skip guitar_stem_cleaning entirely")
+    parser.add_argument("--no-hpss",     action="store_true", help="Disable HPSS stage in cleaning")
+    parser.add_argument("--sat-repair",  action="store_true", help="Enable soft saturation repair (off by default)")
     args = parser.parse_args()
+
+    # Build per-run cleaning config from flags
+    cleaning_cfg = {}
+    if args.no_hpss:
+        cleaning_cfg["hpss"] = {"enabled": False}
+    if args.sat_repair:
+        cleaning_cfg["sat_repair"] = {"enabled": True}
 
     state = PipelineState(
         input_path=Path(args.input),
@@ -63,10 +76,29 @@ if __name__ == "__main__":
     )
 
     nodes = [
-        Node("stem_extraction", stem_extraction),
-        Node("create_dataset",  create_dataset,  enabled=False),
-        Node("load_model",      load_model),
-        Node("predict",         predict),
+        Node("stem_extraction",      stem_extraction),
+        Node("guitar_stem_cleaning",
+             lambda s: guitar_stem_cleaning(s, cleaning_config=cleaning_cfg or None),
+             enabled=not args.no_cleaning),
+        Node("create_dataset",       create_dataset,  enabled=False),
+        Node("load_model",           load_model),
+        Node("predict",              predict),
     ]
 
-    run_pipeline(state, nodes)
+    state = run_pipeline(state, nodes)
+
+    # Save outputs if predict node produced notes
+    if state.predicted_notes:
+        track_id = Path(args.input).stem
+        out = Path(args.output)
+        out.mkdir(parents=True, exist_ok=True)
+
+        midi_path = str(out / f"{track_id}.mid")
+        _save_midi(state.predicted_notes, midi_path, track_id)
+        print(f"  MIDI      -> {midi_path}")
+
+        tab_path = str(out / f"{track_id}_tab.txt")
+        save_notes_to_ascii_tab(state.predicted_notes, tab_path, track_id, config)
+        print(f"  Tablature -> {tab_path}")
+    else:
+        print("No notes predicted — check model output.")

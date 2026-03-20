@@ -11,11 +11,24 @@ from predict_on_custom import run_custom_prediction, predict_notes
 from guitarset_demucs.create_demucs_finetuning_dataset import create_mixed_guitarset
 from model.architecture import GuitarTabCRNN
 from model.utils import load_best_model
+from audio_cleaning import clean_guitar_stem
 
 
 def stem_extraction(state):
     separator = StemSeparator()
     state.guitar_stem_path = separator.separate(state.input_path, target_stem="guitar")
+    return state
+
+
+def guitar_stem_cleaning(state, cleaning_config=None):
+    if state.guitar_stem_path is None:
+        raise ValueError("guitar_stem_cleaning: state.guitar_stem_path is None — run stem_extraction first")
+    out_dir = state.output_dir / "cleaned_guitar_stems"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    output_path = out_dir / f"{state.guitar_stem_path.stem}_cleaned.wav"
+    state.guitar_stem_path = clean_guitar_stem(
+        state.guitar_stem_path, output_path, config=cleaning_config
+    )
     return state
 
 
