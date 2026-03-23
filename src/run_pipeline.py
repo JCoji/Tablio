@@ -27,7 +27,7 @@ class PipelineState:
     model: Optional[object] = None
     mixed_dataset_dir: Path = Path("data/guitarset_mixed")
     output_dir: Path = Path("output")
-    artifacts_dir: Path = Path("hyperparam_set_v1")
+    artifacts_dir: Path = Path("hyperparam_set_v2")
     extras: dict = field(default_factory=dict)
 
 
@@ -52,10 +52,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Tablio pipeline")
     parser.add_argument("--input", required=True, help="Path to input audio file")
     parser.add_argument("--musdb", default="musdb18hq", help="Path to MUSDB18-HQ dataset")
-    parser.add_argument("--artifacts", default="hyperparam_set_v1", help="Path to model artifacts dir")
+    parser.add_argument("--artifacts", default="hyperparam_set_v2", help="Path to model artifacts dir")
     parser.add_argument("--output", default="output", help="Output directory")
     parser.add_argument("--device", default="cpu", help="Device for inference (cpu, cuda, mps)")
-    parser.add_argument("--run", default="run_7_Test_Higher_OnsetLossWeight_10_augEnabled", help="Model run folder name (skips interactive prompt)")
+    parser.add_argument("--run", default="run_2_Test_Higher_Dropout_0.55_augEnabled", help="Model run folder name (skips interactive prompt)")
     parser.add_argument("--no-cleaning", action="store_true", help="Skip guitar_stem_cleaning entirely")
     parser.add_argument("--no-hpss",     action="store_true", help="Disable HPSS stage in cleaning")
     parser.add_argument("--sat-repair",  action="store_true", help="Enable soft saturation repair (off by default)")
