@@ -20,4 +20,9 @@ __pycache__/
 data/
 input/
 output/
-guitarset_mixed_dataset/
+guitarset_mixed_dataset_augmented/
+guitarset_mixed_dataset_clean/
+GuitarSetIsolated/
+GuitarSetIsolatedClean/
+hyperparam_set_v1/
+hyperparam_set_v2/
