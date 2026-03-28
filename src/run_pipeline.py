@@ -75,6 +75,7 @@ if __name__ == "__main__":
         extras={"musdb_dir": args.musdb, "device": args.device, "run_name": args.run},
     )
 
+    #Default pipeline arangement - modify as needed
     nodes = [
         Node("stem_extraction",      stem_extraction),
         Node("guitar_stem_cleaning",

@@ -70,8 +70,8 @@ def apply_reverb(audio, sr, room_size=None, wet_dry=None):
     Args:
         audio:     1-D float array
         sr:        sample rate
-        room_size: 0–1 controlling decay length (default: random 0.1 … 0.9)
-        wet_dry:   wet/dry blend 0–1 (default: random 0.1 … 0.5)
+        room_size: 0-1 controlling decay length (default: random 0.1 … 0.9)
+        wet_dry:   wet/dry blend 0-1 (default: random 0.1 … 0.5)
     """
     if room_size is None:
         room_size = random.uniform(0.1, 0.9)
@@ -193,14 +193,14 @@ def create_mixed_guitarset(
     print(f"  Validation: {len(val_ids)} tracks")
     
     # Process training set
-    print("\n📦 Processing training set...")
+    print("\nProcessing training set...")
     process_split(guitarset, train_ids, choose_musdb_pool(tracks_by_split, 'train'), train_dir, augment=augment)
 
     # Process validation set
-    print("\n📦 Processing validation set...")
+    print("\nProcessing validation set...")
     process_split(guitarset, val_ids, choose_musdb_pool(tracks_by_split, 'val'), val_dir, augment=augment)
     
-    print(f"\n✅ Dataset creation complete!")
+    print(f"\nDataset creation complete!")
     print(f"   Location: {output_dir}")
     print(f"   Training tracks: {len(list(train_dir.glob('*.wav')))}")
     print(f"   Validation tracks: {len(list(val_dir.glob('*.wav')))}")
@@ -230,7 +230,7 @@ def process_split(guitarset, track_ids, musdb_tracks, output_dir, augment=True):
             
             # Check if files exist
             if not all([drums_path.exists(), bass_path.exists(), vocals_path.exists()]):
-                print(f"\n⚠️  Missing stems for {musdb_track.name}, skipping...")
+                print(f"\nMissing stems for {musdb_track.name}, skipping...")
                 continue
             
             drums, _ = sf.read(drums_path)
@@ -323,7 +323,7 @@ def process_split(guitarset, track_ids, musdb_tracks, output_dir, augment=True):
             ground_truth_jams.save(str(output_jams_path))
             
         except Exception as e:
-            print(f"\n❌ Error processing {track_id}: {e}")
+            print(f"\nError processing {track_id}: {e}")
             continue
 
 
