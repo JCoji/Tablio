@@ -10,15 +10,15 @@ import config
 
 def load_best_model(model_class, model_path, run_config_path, device):
     if not os.path.exists(model_path):
-        print(f"BŁĄD KRYTYCZNY: Nie znaleziono pliku modelu w '{model_path}'")
+        print(f"CRITICAL ERROR: Model file not found at '{model_path}'")
         return None
     if not os.path.exists(run_config_path):
         print(
-            f"BŁĄD KRYTYCZNY: Nie znaleziono pliku konfiguracyjnego w '{run_config_path}'"
+            f"CRITICAL ERROR: Config file not found at '{run_config_path}'"
         )
         return None
 
-    print(f"--- Próba załadowania modelu z pliku: {os.path.basename(model_path)} ---")
+    print(f"--- Loading model from: {os.path.basename(model_path)} ---")
 
     try:
         with open(run_config_path, "r", encoding="utf-8") as f:
@@ -46,12 +46,12 @@ def load_best_model(model_class, model_path, run_config_path, device):
             "rnn_bidirectional": hyperparams.get("RNN_BIDIRECTIONAL", config.RNN_BIDIRECTIONAL_DEFAULT),
         }
 
-        print(f"Odtworzone parametry inicjalizacyjne: {model_init_params}")
+        print(f"Reconstructed model init params: {model_init_params}")
 
         loaded_model = model_class(**model_init_params)
 
         device_type = device.type if hasattr(device, "type") else device
-        print(f"Ładowanie wag na urządzenie: {device_type}")
+        print(f"Loading weights to device: {device_type}")
         state_dict = torch.load(model_path, map_location=device, weights_only=True)
 
         if list(state_dict.keys())[0].startswith("module."):
@@ -61,10 +61,10 @@ def load_best_model(model_class, model_path, run_config_path, device):
         loaded_model.to(device)
         loaded_model.eval()
 
-        print(f"Model pomyślnie załadowany i przeniesiony na urządzenie: {device}")
+        print(f"Model loaded successfully on device: {device}")
         return loaded_model
 
     except Exception as e:
-        print(f"\nBŁĄD KRYTYCZNY podczas procesu ładowania modelu: {e}")
+        print(f"\nCRITICAL ERROR during model loading: {e}")
         traceback.print_exc()
         return None

@@ -49,7 +49,7 @@ class TabCNN(nn.Module):
             == len(ps_list)
         ):
             raise ValueError(
-                f"Długości list parametrów CNN muszą być równe. Otrzymano: "
+                f"CNN parameter lists must all have the same length. Got: "
                 f"output_channels: {len(oc_list)}, kernels: {len(ks_list)}, "
                 f"strides: {len(s_list)}, paddings: {len(p_list)}, "
                 f"pool_kernels: {len(pk_list)}, pool_strides: {len(ps_list)}"
@@ -152,7 +152,7 @@ class GuitarTabCRNN(nn.Module):
         elif rnn_type.upper() == "GRU":
             self.rnn = nn.GRU(**rnn_params)
         else:
-            raise ValueError(f"Nieznany typ RNN: {rnn_type}. Wybierz 'LSTM' lub 'GRU'.")
+            raise ValueError(f"Unknown RNN type: {rnn_type}. Choose 'LSTM' or 'GRU'.")
 
         rnn_output_size = (
             (2 * rnn_hidden_size) if rnn_bidirectional else rnn_hidden_size
@@ -175,9 +175,9 @@ class GuitarTabCRNN(nn.Module):
 
         if x_rnn_input.shape[2] != self.rnn_input_dim:
             raise ValueError(
-                f"Wymiar cech po CNN ({x_rnn_input.shape[2]}) "
-                f"nie zgadza się z oczekiwanym rnn_input_dim ({self.rnn_input_dim}). "
-                f"Sprawdź konfigurację CNN (pooling) oraz wartość `num_frames_rnn_input_dim`."
+                f"CNN output feature dimension ({x_rnn_input.shape[2]}) "
+                f"does not match expected rnn_input_dim ({self.rnn_input_dim}). "
+                f"Check CNN configuration (pooling) and the value of `num_frames_rnn_input_dim`."
             )
 
         x_rnn_output, _ = self.rnn(x_rnn_input)

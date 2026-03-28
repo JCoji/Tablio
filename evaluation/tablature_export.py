@@ -59,7 +59,7 @@ def _format_tablature_matrix_to_text(tab_matrix_data_slots, num_total_strings):
     output_text_lines = []
     string_display_names = config.TAB_STRING_NAMES_DISPLAY_6_STRING
     if not tab_matrix_data_slots or not tab_matrix_data_slots[0]:
-        return "Brak danych do sformatowania."
+        return "No data to format."
 
     total_num_slots = len(tab_matrix_data_slots[0])
     for slot_start_batch_idx in range(
@@ -145,7 +145,7 @@ def generate_text_tablature_comparison(
                 f"Track ID: {track_id}\n--- Predicted Tablature (Onset Thresh: {onset_threshold_optimal:.2f}) ---\n\n{pred_tab_text}"
             )
     except Exception as e:
-        print(f"\nBłąd podczas generowania tabulatury dla utworu {track_id}: {e}")
+        print(f"\nError generating tablature for track {track_id}: {e}")
 
 def save_notes_to_ascii_tab(notes_list, output_filepath, track_id, config_obj):
     if not notes_list:
