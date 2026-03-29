@@ -17,12 +17,19 @@ __pycache__/
 #Audio
 *.wav
 *.mp3
+
+#Audio file directories
 data/
 input/
 output/
+
+#Datasets
 guitarset_mixed_dataset_augmented/
 guitarset_mixed_dataset_clean/
 GuitarSetIsolated/
 GuitarSetIsolatedClean/
+
+#Hyperparameter sets
 hyperparam_set_v1/
 hyperparam_set_v2/
+hyperparam_set_v3/

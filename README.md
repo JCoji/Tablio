@@ -76,7 +76,23 @@ Key dependencies:
 git clone https://github.com/JCoji/Tablio.git
 cd Tablio
 python -m venv venv
+```
+
+Activate the virtual environment:
+
+**macOS / Linux**
+```bash
 source venv/bin/activate
+```
+
+**Windows**
+```cmd
+venv\Scripts\activate
+```
+
+Then install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
